@@ -87,7 +87,7 @@ function ruleChecks(text, jobDescription) {
 
   const checks = [
     { name: 'Email address', weight: 10, passed: /[\w.+-]+@[\w-]+\.[\w.]+/.test(text) },
-    { name: 'Phone number', weight: 5, passed: /(\+?\d[\d\s-]{8,}\d)/.test(text) },
+    { name: 'Phone number', weight: 5, passed: hasPhone(text) },
     { name: 'LinkedIn or GitHub link', weight: 5, passed: /linkedin\.com|github\.com/i.test(text) },
     { name: 'Experience section', weight: 15, passed: /\b(experience|employment|internships?|work history)\b/.test(lower) },
     { name: 'Education section', weight: 10, passed: /\beducation\b|\bacademic/.test(lower) },
@@ -147,6 +147,16 @@ function ruleChecks(text, jobDescription) {
   };
 }
 
+// A phone number has 10 to 13 digits. Pull out each run of phone-like characters,
+// strip everything that is not a digit, and check the digit count. This rejects a
+// year range like "2021 - 2024" (only 8 digits) that the old regex wrongly accepted.
+function hasPhone(text) {
+  const candidates = text.match(/\+?\d[\d\s\-()]{7,}\d/g) || [];
+  return candidates.some((c) => {
+    const digits = c.replace(/\D/g, '');
+    return digits.length >= 10 && digits.length <= 13;
+  });
+}
 // Whole-word match; also accepts "node" for "node.js", and plurals ("rest apis" for "rest api")
 function hasTerm(text, term) {
   const base = term.replace(/\.js$/, '');
